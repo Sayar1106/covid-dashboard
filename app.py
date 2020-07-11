@@ -14,14 +14,14 @@ def main():
     st.title("COVID-19 Dashboard")
     date = datetime.today()
     DATA_URL = ("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/"
-                "csse_covid_19_daily_reports/{}.csv".format(date.date().strftime("%d-%m-%Y")))
+                "csse_covid_19_daily_reports/{}.csv".format(date.date().strftime("%m-%d-%Y")))
     try:
         load_data(DATA_URL)
     except:
         date = date - timedelta(days=1)
 
         DATA_URL = ("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/"
-                "csse_covid_19_daily_reports/{}.csv".format(date))
+                "csse_covid_19_daily_reports/{}.csv".format(date.date().strftime("%m-%d-%Y")))
 
     load_state = st.text('Loading data......')
     df = load_data(DATA_URL)
