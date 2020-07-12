@@ -2,14 +2,14 @@ import streamlit as st
 from PIL import Image
 
 def main():
+    image = Image.open("assets/monalisa-4893660_640.jpg")
+    st.image(image)
     st.title("COVID-19 Dashboard")
     st.write("""
     This web-application will serve to analyze, visualize, the spread of the novel Coronavirus - 2019 (COVID - 19)
     caused by severe acute respiratory syndrome coronavirus 2 (SARS-CoV-2). It was first identified in December 2019
     in Wuhan, Hubei, China and has resulted in an ongoing pandemic.
     """)
-    image = Image.open("assets/monalisa-4893660_640.jpg")
-    st.image(image, use_column_width=True)
     st.markdown("## Symptoms")
     st.markdown(("* Fever or chills\n* Cough\n"
                 "* Shortness of breath or difficulty breathing\n"
