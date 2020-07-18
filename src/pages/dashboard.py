@@ -55,33 +55,26 @@ def plot_top_countries(df, colors, date):
         fig.append_trace(go.Bar(x=temp["Confirmed"].nlargest(n=10),
                                 y=temp["Confirmed"].nlargest(n=10).index,
                                 orientation='h',
-                                marker=dict(color=colors),
-                                hovertemplate='<br>Count: %{x:,.2f}',
-                                ),
+                                marker=dict(color=colors)),
                          row=1, col=1)
 
         fig.append_trace(go.Bar(x=temp["Deaths"].nlargest(n=10),
                                 y=temp["Deaths"].nlargest(n=10).index,
                                 orientation='h',
-                                marker=dict(color=colors),
-                                hovertemplate = '<br>Count: %{x:,.2f}',
-                                ),
+                                marker=dict(color=colors)),
         row=2, col=1)
 
         fig.append_trace(go.Bar(x=temp["Recovered"].nlargest(n=10),
                                 y=temp["Recovered"].nlargest(n=10).index,
                                 orientation='h',
-                                marker=dict(color=colors),
-                                hovertemplate='<br>Count: %{x:,.2f}',
-                                ),
-                         row=1, col=2)
+                                marker=dict(color=colors)),
+        row=1, col=2)
 
         fig.append_trace(go.Bar(x=temp["Active"].nlargest(n=10),
                                 y=temp["Active"].nlargest(n=10).index,
                                 orientation='h',
-                                marker=dict(color=colors),
-                                hovertemplate='<br>Count: %{x:,.2f}'),
-                        row=2, col=2)
+                                marker=dict(color=colors)),
+        row=2, col=2)
         fig.update_yaxes(autorange="reversed")
         fig.update_traces(
             opacity=0.7,
@@ -98,7 +91,6 @@ def plot_incidence_rate(df, colors, date):
     with st.spinner("Rendering chart..."):
         fig = df
 
-@st.cache
 def plot_timeline(df, feature, country=None):
     color=px.colors.qualitative.Prism
     if country:
@@ -106,48 +98,24 @@ def plot_timeline(df, feature, country=None):
     temp = df.groupby(["Date"]).agg({feature: "sum"}).reset_index()
     temp["Delta_{}".format(feature)] = temp[feature].diff()
     temp["Delta_{}".format(feature)].clip(0, inplace=True)
-
     fig = make_subplots(2,1, subplot_titles=["Cumulative {}".format(feature),
-                                             "Daily Delta {}".format(feature)])
+                                             "Daily delta {}".format(feature)])
     fig.add_trace(go.Scatter(
                  x=temp["Date"],
                  y=temp[feature],
-                 marker=dict(color=color[2]),
-                 hovertemplate='Date: %{x} <br>Count: %{y:,.2f}',
-    ),
-    row=1, col=1)
+                 marker=dict(color=color[2])),
+        row=1, col=1)
     fig.add_trace(go.Bar(
                  x=temp["Date"],
                  y=temp["Delta_{}".format(feature)],
-                 marker=dict(color=color[6]),
-                 opacity=0.7,
-                 hovertemplate='Date: %{x} <br>Count: %{y:,.2f}'),
-        row=2, col=1)
+                 marker=dict(color=color[6])),
+    row=2, col=1)
     fig.update_layout(height=800,
                       showlegend=False)
 
     return fig
 
 
-@st.cache
-def plot_districts(df, country):
-    df = df[df["Country_Region"] == country]
-    if df["Province_State"].isnull().all():
-        st.info("Sorry we do not have province/state level information for {}".format(country))
-    df.rename(columns={"Lat": "lat",
-                       "Long_": "lon"}, inplace=True)
-    temp = df[["lat", "lon"]]
-    temp.dropna(inplace=True)
-    with open("src/pages/utils/tokens/.mapbox_token") as tfile:
-        token = tfile.read()
-    fig = px.scatter_mapbox(df, lat="lat", lon="lon", zoom=3, height=600, width=800,
-                            size="Confirmed",
-                            hover_name="Province_State", hover_data=["Admin2", "Province_State", "Confirmed",
-                                                                     "Deaths", "Recovered"])
-    fig.update_layout(mapbox_style="dark", mapbox_accesstoken=token)
-    fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
-
-    return fig
 
 def main():
     pio.templates.default = "plotly_dark"
@@ -166,18 +134,13 @@ def main():
         country = st.sidebar.selectbox("country", df["Country_Region"].unique())
         st.title(country)
         graph_type = st.selectbox("Choose visualization", ["Total Count",
-                                                           "Timeline",
-                                                           "Province/State"])
+                                                                   "Timeline"])
         if graph_type == "Total Count":
             fig = plot_snapshot_numbers(df, px.colors.qualitative.D3, date.date(), country)
             st.plotly_chart(fig)
         elif graph_type == "Timeline":
-            slider_ph = st.empty()
             feature = st.selectbox("Select one", ["Confirmed", "Deaths", "Recovered"])
             fig = plot_timeline(time_series_dict[feature], feature, country=country)
-            st.plotly_chart(fig)
-        elif graph_type == "Province/State":
-            fig = plot_districts(df, country)
             st.plotly_chart(fig)
     else:
         #TODO(Sayar): Add values for deltas
@@ -187,20 +150,15 @@ def main():
         st.title("Worldwide")
         st.write("\n")
         st.info("Data updated as on {}".format(date.date().strftime("%d %B, %Y")))
-        graph_type = st.sidebar.selectbox("Choose visualization", ["Total Count",
-                                                           "Top affected/recovered",
-                                                           "Timeline"])
+        graph_type = st.selectbox("Choose visualization", ["Total Count",
+                                                           "Top affected/recovered"])
+        st.write("\n")
+        st.write("\n")
+        t = "<div><span class='highlight blue'>Active:  <span class='bold'>&uarr;</span> </span> <span class='highlight orange'>Confirmed:  <span class='bold'>Name</span> </span><span class='highlight red'>Deaths:  <span class='bold'>Name</span> </span> <span class='highlight green'>Recovered:  <span class='bold'>Name</span> </span></div>"
+        st.markdown(t, unsafe_allow_html=True)
         if graph_type == "Total Count":
-            st.write("\n")
-            st.write("\n")
-            t = "<div><span class='highlight blue'>Active:  <span class='bold'>&uarr;</span> </span> <span class='highlight orange'>Confirmed:  <span class='bold'>Name</span> </span><span class='highlight red'>Deaths:  <span class='bold'>Name</span> </span> <span class='highlight green'>Recovered:  <span class='bold'>Name</span> </span></div>"
-            st.markdown(t, unsafe_allow_html=True)
             fig = plot_snapshot_numbers(df, px.colors.qualitative.D3, date.date())
             st.plotly_chart(fig)
         elif graph_type == "Top affected/recovered":
             fig = plot_top_countries(df, px.colors.qualitative.D3, date.date())
-            st.plotly_chart(fig)
-        elif graph_type == "Timeline":
-            feature = st.selectbox("Select one", ["Confirmed", "Deaths", "Recovered"])
-            fig = plot_timeline(time_series_dict[feature], feature)
             st.plotly_chart(fig)
