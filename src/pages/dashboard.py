@@ -8,10 +8,15 @@ from datetime import datetime, timedelta
 from src.pages.utils.fetch_url import fetch_url
 from src.pages.utils.load_data import load_data
 from src.pages.utils.load_css import local_css
+from src.pages.utils.load_time_series import load_time_series
+
+
 @st.cache
-def plot_snapshot_numbers(df, colors, date):
+def plot_snapshot_numbers(df, colors, date, country=None):
     with st.spinner("Rendering chart..."):
         colors = px.colors.qualitative.D3
+        if country:
+            df = df[df["Country_Region"] == country]
         fig = px.bar(y=df[["Confirmed", "Deaths", "Recovered", "Active"]].columns.tolist(),
                      x=df[["Confirmed", "Deaths", "Recovered", "Active"]].sum().values,
                      color=df[["Confirmed", "Deaths", "Recovered", "Active"]].columns.tolist(),
@@ -82,6 +87,36 @@ def plot_top_countries(df, colors, date):
 
     return fig
 
+def plot_incidence_rate(df, colors, date):
+    with st.spinner("Rendering chart..."):
+        fig = df
+
+def plot_timeline(df, feature, country=None):
+    color=px.colors.qualitative.Prism
+    if country:
+        df = df[df["Country/Region"] == country]
+    temp = df.groupby(["Date"]).agg({feature: "sum"}).reset_index()
+    temp["Delta_{}".format(feature)] = temp[feature].diff()
+    temp["Delta_{}".format(feature)].clip(0, inplace=True)
+    fig = make_subplots(2,1, subplot_titles=["Cumulative {}".format(feature),
+                                             "Daily delta {}".format(feature)])
+    fig.add_trace(go.Scatter(
+                 x=temp["Date"],
+                 y=temp[feature],
+                 marker=dict(color=color[2])),
+        row=1, col=1)
+    fig.add_trace(go.Bar(
+                 x=temp["Date"],
+                 y=temp["Delta_{}".format(feature)],
+                 marker=dict(color=color[6])),
+    row=2, col=1)
+    fig.update_layout(height=800,
+                      showlegend=False)
+
+    return fig
+
+
+
 def main():
     pio.templates.default = "plotly_dark"
     date = datetime.today()
@@ -93,26 +128,34 @@ def main():
         date = date - timedelta(days=1)
         DATA_URL = fetch_url(date)
     df = load_data(DATA_URL)
+    time_series_dict = load_time_series()
     granularity = st.sidebar.selectbox("Granularity", ["Worldwide", "Country"])
     if granularity == "Country":
-        st.sidebar.selectbox("country", df["Country_Region"].unique())
+        country = st.sidebar.selectbox("country", df["Country_Region"].unique())
+        st.title(country)
+        graph_type = st.selectbox("Choose visualization", ["Total Count",
+                                                                   "Timeline"])
+        if graph_type == "Total Count":
+            fig = plot_snapshot_numbers(df, px.colors.qualitative.D3, date.date(), country)
+            st.plotly_chart(fig)
+        elif graph_type == "Timeline":
+            feature = st.selectbox("Select one", ["Confirmed", "Deaths", "Recovered"])
+            fig = plot_timeline(time_series_dict[feature], feature, country=country)
+            st.plotly_chart(fig)
     else:
         #TODO(Sayar): Add values for deltas
         PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'))
         local_css(PATH + "/style.css")
+
         st.title("Worldwide")
         st.write("\n")
         st.info("Data updated as on {}".format(date.date().strftime("%d %B, %Y")))
+        graph_type = st.selectbox("Choose visualization", ["Total Count",
+                                                           "Top affected/recovered"])
         st.write("\n")
         st.write("\n")
         t = "<div><span class='highlight blue'>Active:  <span class='bold'>&uarr;</span> </span> <span class='highlight orange'>Confirmed:  <span class='bold'>Name</span> </span><span class='highlight red'>Deaths:  <span class='bold'>Name</span> </span> <span class='highlight green'>Recovered:  <span class='bold'>Name</span> </span></div>"
         st.markdown(t, unsafe_allow_html=True)
-        st.write("\n")
-        st.write("\n")
-        st.write("\n")
-        st.write("\n")
-        graph_type = st.sidebar.selectbox("Choose visualization", ["Total Count",
-                                                                   "Top affected/recovered"])
         if graph_type == "Total Count":
             fig = plot_snapshot_numbers(df, px.colors.qualitative.D3, date.date())
             st.plotly_chart(fig)
