@@ -18,14 +18,16 @@ def plot_snapshot_numbers(df, colors, date, country=None):
         colors = px.colors.qualitative.D3
         if country:
             df = df[df["Country_Region"] == country]
-        fig = px.bar(y=df[["Confirmed", "Deaths", "Recovered", "Active"]].columns.tolist(),
-                     x=df[["Confirmed", "Deaths", "Recovered", "Active"]].sum().values,
-                     color=df[["Confirmed", "Deaths", "Recovered", "Active"]].columns.tolist(),
-                     text=df[["Confirmed", "Deaths", "Recovered", "Active"]].sum().values,
-                     orientation='h',
-                     color_discrete_sequence=[colors[1], colors[3], colors[2], colors[0]])
+        fig = go.Figure()
+        fig.add_trace(go.Bar(y=df[["Confirmed", "Deaths", "Recovered", "Active"]].columns.tolist(),
+                             x=df[["Confirmed", "Deaths", "Recovered", "Active"]].sum().values,
+                             text=df[["Confirmed", "Deaths", "Recovered", "Active"]].sum().values,
+                             orientation='h',
+                             marker=dict(color=[colors[1], colors[3], colors[2], colors[0]]),
+                             ),
+                      )
         fig.update_traces(opacity=0.7,
-                          textposition="inside",
+                          textposition=["inside", "outside", "inside", "inside"],
                           texttemplate='%{text:.3s}',
                           hovertemplate='Status: %{y} <br>Count: %{x:,.2f}',
                           marker_line_color='rgb(255, 255, 255)',
@@ -33,10 +35,10 @@ def plot_snapshot_numbers(df, colors, date, country=None):
                           )
         fig.update_layout(
             title="Total count",
-            width=750,
-            legend=dict(title="Status"),
+            width=800,
+            legend_title_text="Status",
             xaxis=dict(title="Count"),
-            yaxis=dict(title="Status", showgrid=False, showticklabels=False)
+            yaxis=dict(showgrid=False, showticklabels=True),
         )
 
     return fig
@@ -102,7 +104,7 @@ def plot_incidence_rate(df, colors, date):
         fig = df
 
 
-@st.cache
+@st.cache(allow_output_mutation=True)
 def plot_timeline(df, feature, country=None):
     color = px.colors.qualitative.Prism
     if country:
@@ -117,6 +119,7 @@ def plot_timeline(df, feature, country=None):
         x=temp["Date"],
         y=temp[feature],
         marker=dict(color=color[2]),
+        line=dict(dash="dashdot", width=4),
         hovertemplate='Date: %{x} <br>Count: %{y:,.2f}',
     ),
         row=1, col=1)
@@ -127,18 +130,22 @@ def plot_timeline(df, feature, country=None):
         opacity=0.7,
         hovertemplate='Date: %{x} <br>Count: %{y:,.2f}'),
         row=2, col=1)
+    fig.update_yaxes(showgrid=False, title="Number of cases")
+    fig.update_xaxes(showgrid=False)
+    fig.update_xaxes(showspikes=True, row=1, col=1)
+    fig.update_yaxes(showspikes=True, row=1, col=1)
     fig.update_layout(height=800,
                       showlegend=False)
 
-    return fig
+    return fig, temp
 
 
 @st.cache
 def plot_province_drilled(df, country):
     fig = make_subplots(2, 2, subplot_titles=["Top 10 States by cases",
-                                                  "Top 10 States by deaths",
-                                                  "Top 10 States by recoveries",
-                                                  "Top 10 States by active cases"])
+                                              "Top 10 States by deaths",
+                                              "Top 10 States by recoveries",
+                                              "Top 10 States by active cases"])
     df = df[df["Country_Region"] == country]
     df = df.groupby(["Province_State"]).agg({"Confirmed": "sum",
                                              "Deaths": "sum",
@@ -177,6 +184,42 @@ def plot_province_drilled(df, country):
     fig.update_layout(height=800, width=1200, showlegend=False)
 
     return fig
+
+
+def load_day_change(time_series_dict, keys, granularity, country=None):
+    response_dict = {}
+    PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'))
+    local_css(PATH + "/style.css")
+    curr = 0
+    prev = 0
+    for key in keys:
+        if granularity == "Country":
+            _, temp = plot_timeline(time_series_dict[key], key, country=country)
+        else:
+            _, temp = plot_timeline(time_series_dict[key], key)
+        prev = temp.iloc[-2, -2]
+        curr = temp.iloc[-1, -2]
+        if (curr - prev) >= 0:
+            arrow = "&uarr;"
+        else:
+            arrow = "&darr;"
+        response_dict[key] = [arrow, abs(curr-prev)]
+
+    val = response_dict["Confirmed"][1] - response_dict["Deaths"][1] - response_dict["Recovered"][1]
+    if val >= 0:
+        response_dict["Active"] = ["&uarr;", abs(val)]
+    else:
+        response_dict["Active"] = ["&darr;", abs(val)]
+
+
+    st.write("\n")
+    st.write("\n")
+    t = (f"<div><span class='highlight blue'>Active:  <span class='bold'>{response_dict['Active'][0]} {response_dict['Active'][1]}</span> </span>"
+         f"<span class='highlight orange'>Confirmed:  <span class='bold'>{response_dict['Confirmed'][0]} {response_dict['Confirmed'][1]}</span> </span>"
+         f"<span class='highlight red'>Deaths:  <span class='bold'>{response_dict['Deaths'][0]} {response_dict['Deaths'][1]}</span> </span> "
+         f"<span class='highlight green'>Recovered:  <span class='bold'>{response_dict['Deaths'][0]} {response_dict['Recovered'][1]}</span> </span></div>")
+
+    st.markdown(t, unsafe_allow_html=True)
 
 
 @st.cache(suppress_st_warning=True)
@@ -230,20 +273,13 @@ def main():
                                                            "Timeline",
                                                            "Province/State"])
         if graph_type == "Total Count":
-            PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'))
-            local_css(PATH + "/style.css")
-            st.write("\n")
-            st.write("\n")
-            t = ("<div><span class='highlight blue'>Active:  <span class='bold'>&uarr;</span> </span>"
-                 "<span class='highlight orange'>Confirmed:  <span class='bold'>Name</span> </span>"
-                 "<span class='highlight red'>Deaths:  <span class='bold'>Name</span> </span> "
-                 "<span class='highlight green'>Recovered:  <span class='bold'>Name</span> </span></div>")
-            st.markdown(t, unsafe_allow_html=True)
+            st.subheader("One day change")
+            load_day_change(time_series_dict, time_series_dict.keys(), granularity, country=country)
             fig = plot_snapshot_numbers(df, px.colors.qualitative.D3, date.date(), country)
             st.plotly_chart(fig)
         elif graph_type == "Timeline":
             feature = st.selectbox("Select one", ["Confirmed", "Deaths", "Recovered"])
-            fig = plot_timeline(time_series_dict[feature], feature, country=country)
+            fig, _ = plot_timeline(time_series_dict[feature], feature, country=country)
             st.plotly_chart(fig)
         elif graph_type == "Province/State":
             fig = plot_province(df, country)
@@ -259,9 +295,6 @@ def main():
                     st.plotly_chart(fig_drilled)
     else:
         # TODO(Sayar): Add values for deltas
-        PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'))
-        local_css(PATH + "/style.css")
-
         st.title("Worldwide")
         st.write("\n")
         st.info("Data updated as on {}".format(date.date().strftime("%d %B, %Y")))
@@ -269,13 +302,8 @@ def main():
                                                                    "Top affected/recovered",
                                                                    "Timeline"])
         if graph_type == "Total Count":
-            st.write("\n")
-            st.write("\n")
-            t = ("<div><span class='highlight blue'>Active:  <span class='bold'>&uarr;</span> </span>"
-                 "<span class='highlight orange'>Confirmed:  <span class='bold'>Name</span> </span>"
-                 "<span class='highlight red'>Deaths:  <span class='bold'>Name</span> </span> "
-                 "<span class='highlight green'>Recovered:  <span class='bold'>Name</span> </span></div>")
-            st.markdown(t, unsafe_allow_html=True)
+            st.subheader("One day change")
+            load_day_change(time_series_dict, time_series_dict.keys(), granularity)
             fig = plot_snapshot_numbers(df, px.colors.qualitative.D3, date.date())
             st.plotly_chart(fig)
         elif graph_type == "Top affected/recovered":
@@ -283,5 +311,5 @@ def main():
             st.plotly_chart(fig)
         elif graph_type == "Timeline":
             feature = st.selectbox("Select one", ["Confirmed", "Deaths", "Recovered"])
-            fig = plot_timeline(time_series_dict[feature], feature)
+            fig, _ = plot_timeline(time_series_dict[feature], feature)
             st.plotly_chart(fig)
