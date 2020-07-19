@@ -49,11 +49,11 @@ def plot_top_countries(df, colors, date):
                                                  "Deaths": "sum",
                                                  "Recovered": "sum",
                                                  "Active": "sum"})
-        colors = px.colors.qualitative.Pastel
-        fig = make_subplots(2, 2, subplot_titles=["Top 10 counties by cases",
-                                                  "Top 10 counties by deaths",
-                                                  "Top 10 counties by recoveries",
-                                                  "Top 10 countries by active cases"])
+        colors = px.colors.qualitative.Prism
+        fig = make_subplots(2, 2, subplot_titles=["Top 10 Countries by cases",
+                                                  "Top 10 Countries by deaths",
+                                                  "Top 10 Countries by recoveries",
+                                                  "Top 10 Countries by active cases"])
         fig.append_trace(go.Bar(x=temp["Confirmed"].nlargest(n=10),
                                 y=temp["Confirmed"].nlargest(n=10).index,
                                 orientation='h',
@@ -135,33 +135,46 @@ def plot_timeline(df, feature, country=None):
 
 @st.cache
 def plot_province_drilled(df, country):
-    fig = make_subplots(2, 2)
+    fig = make_subplots(2, 2, subplot_titles=["Top 10 States by cases",
+                                                  "Top 10 States by deaths",
+                                                  "Top 10 States by recoveries",
+                                                  "Top 10 States by active cases"])
     df = df[df["Country_Region"] == country]
     df = df.groupby(["Province_State"]).agg({"Confirmed": "sum",
-                                              "Deaths": "sum",
-                                              "Recovered": "sum",
-                                              "Active": "sum"})
-    fig.append_trace(go.Bar(x=df["Confirmed"].nlargest(10).index,
-                            y=df["Confirmed"].nlargest(10),
+                                             "Deaths": "sum",
+                                             "Recovered": "sum",
+                                             "Active": "sum"})
+    colors = px.colors.qualitative.Prism
+    fig.append_trace(go.Bar(y=df["Confirmed"].nlargest(10).index,
+                            x=df["Confirmed"].nlargest(10),
+                            orientation='h',
+                            marker=dict(color=colors),
                             ),
                      row=1, col=1)
 
-    fig.append_trace(go.Bar(x=df["Deaths"].nlargest(10).index,
-                            y=df["Deaths"].nlargest(10),
+    fig.append_trace(go.Bar(y=df["Deaths"].nlargest(10).index,
+                            x=df["Deaths"].nlargest(10),
+                            orientation='h',
+                            marker=dict(color=colors),
                             ),
                      row=2, col=1)
 
-    fig.append_trace(go.Bar(x=df["Recovered"].nlargest(10).index,
-                            y=df["Recovered"].nlargest(10),
+    fig.append_trace(go.Bar(y=df["Recovered"].nlargest(10).index,
+                            x=df["Recovered"].nlargest(10),
+                            orientation='h',
+                            marker=dict(color=colors),
                             ),
                      row=1, col=2)
 
-    fig.append_trace(go.Bar(x=df["Active"].nlargest(10).index,
-                            y=df["Active"].nlargest(10),
+    fig.append_trace(go.Bar(y=df["Active"].nlargest(10).index,
+                            x=df["Active"].nlargest(10),
+                            orientation='h',
+                            marker=dict(color=colors),
                             ),
                      row=2, col=2)
-
-    fig.update_layout(height=800, width=800)
+    fig.update_yaxes(ticks="inside")
+    fig.update_xaxes(showgrid=False)
+    fig.update_layout(height=800, width=1200, showlegend=False)
 
     return fig
 
@@ -217,10 +230,18 @@ def main():
                                                            "Timeline",
                                                            "Province/State"])
         if graph_type == "Total Count":
+            PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'))
+            local_css(PATH + "/style.css")
+            st.write("\n")
+            st.write("\n")
+            t = ("<div><span class='highlight blue'>Active:  <span class='bold'>&uarr;</span> </span>"
+                 "<span class='highlight orange'>Confirmed:  <span class='bold'>Name</span> </span>"
+                 "<span class='highlight red'>Deaths:  <span class='bold'>Name</span> </span> "
+                 "<span class='highlight green'>Recovered:  <span class='bold'>Name</span> </span></div>")
+            st.markdown(t, unsafe_allow_html=True)
             fig = plot_snapshot_numbers(df, px.colors.qualitative.D3, date.date(), country)
             st.plotly_chart(fig)
         elif graph_type == "Timeline":
-            slider_ph = st.empty()
             feature = st.selectbox("Select one", ["Confirmed", "Deaths", "Recovered"])
             fig = plot_timeline(time_series_dict[feature], feature, country=country)
             st.plotly_chart(fig)
@@ -228,8 +249,11 @@ def main():
             fig = plot_province(df, country)
             if fig is not None:
                 fig_drilled = None
-                if st.checkbox("Drill down"):
-                    fig_drilled = plot_province_drilled(df, country)
+                if st.checkbox("Summary"):
+                    if country == "US":
+                        fig_drilled = plot_province_drilled(load_data(fetch_url(date, country="US")), country)
+                    else:
+                        fig_drilled = plot_province_drilled(df, country)
                 st.plotly_chart(fig)
                 if fig_drilled is not None:
                     st.plotly_chart(fig_drilled)
@@ -247,7 +271,10 @@ def main():
         if graph_type == "Total Count":
             st.write("\n")
             st.write("\n")
-            t = "<div><span class='highlight blue'>Active:  <span class='bold'>&uarr;</span> </span> <span class='highlight orange'>Confirmed:  <span class='bold'>Name</span> </span><span class='highlight red'>Deaths:  <span class='bold'>Name</span> </span> <span class='highlight green'>Recovered:  <span class='bold'>Name</span> </span></div>"
+            t = ("<div><span class='highlight blue'>Active:  <span class='bold'>&uarr;</span> </span>"
+                 "<span class='highlight orange'>Confirmed:  <span class='bold'>Name</span> </span>"
+                 "<span class='highlight red'>Deaths:  <span class='bold'>Name</span> </span> "
+                 "<span class='highlight green'>Recovered:  <span class='bold'>Name</span> </span></div>")
             st.markdown(t, unsafe_allow_html=True)
             fig = plot_snapshot_numbers(df, px.colors.qualitative.D3, date.date())
             st.plotly_chart(fig)
