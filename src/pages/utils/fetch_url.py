@@ -1,5 +1,3 @@
-from datetime import datetime, timedelta
-
 
 def fetch_url(date, country=None):
     DATA_URL = ("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/"

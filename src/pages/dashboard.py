@@ -1,5 +1,5 @@
 import os
-import streamlit  as st
+import streamlit as st
 import numpy as np
 import plotly.express as px
 from plotly.subplots import make_subplots
@@ -99,11 +99,6 @@ def plot_top_countries(df, colors, date):
     return fig
 
 
-def plot_incidence_rate(df, colors, date):
-    with st.spinner("Rendering chart..."):
-        fig = df
-
-
 @st.cache(allow_output_mutation=True)
 def plot_timeline(df, feature, country=None):
     color = px.colors.qualitative.Prism
@@ -179,7 +174,7 @@ def plot_province_drilled(df, country):
                             marker=dict(color=colors),
                             ),
                      row=2, col=2)
-    fig.update_yaxes(ticks="inside")
+    fig.update_yaxes(ticks="inside", autorange="reversed")
     fig.update_xaxes(showgrid=False)
     fig.update_layout(height=800, width=1200, showlegend=False)
 
@@ -203,7 +198,7 @@ def load_day_change(time_series_dict, keys, granularity, country=None):
             arrow = "&uarr;"
         else:
             arrow = "&darr;"
-        response_dict[key] = [arrow, abs(curr-prev)]
+        response_dict[key] = [arrow, abs(curr - prev)]
 
     val = response_dict["Confirmed"][1] - response_dict["Deaths"][1] - response_dict["Recovered"][1]
     if val >= 0:
@@ -211,13 +206,13 @@ def load_day_change(time_series_dict, keys, granularity, country=None):
     else:
         response_dict["Active"] = ["&darr;", abs(val)]
 
-
     st.write("\n")
     st.write("\n")
-    t = (f"<div><span class='highlight blue'>Active:  <span class='bold'>{response_dict['Active'][0]} {response_dict['Active'][1]}</span> </span>"
-         f"<span class='highlight orange'>Confirmed:  <span class='bold'>{response_dict['Confirmed'][0]} {response_dict['Confirmed'][1]}</span> </span>"
-         f"<span class='highlight red'>Deaths:  <span class='bold'>{response_dict['Deaths'][0]} {response_dict['Deaths'][1]}</span> </span> "
-         f"<span class='highlight green'>Recovered:  <span class='bold'>{response_dict['Deaths'][0]} {response_dict['Recovered'][1]}</span> </span></div>")
+    t = (
+        f"<div><span class='highlight blue'>Active:  <span class='bold'>{response_dict['Active'][0]} {response_dict['Active'][1]}</span> </span>"
+        f"<span class='highlight orange'>Confirmed:  <span class='bold'>{response_dict['Confirmed'][0]} {response_dict['Confirmed'][1]}</span> </span>"
+        f"<span class='highlight red'>Deaths:  <span class='bold'>{response_dict['Deaths'][0]} {response_dict['Deaths'][1]}</span> </span> "
+        f"<span class='highlight green'>Recovered:  <span class='bold'>{response_dict['Deaths'][0]} {response_dict['Recovered'][1]}</span> </span></div>")
 
     st.markdown(t, unsafe_allow_html=True)
 
@@ -247,7 +242,8 @@ def plot_province(df, country):
                                 color_continuous_scale=px.colors.sequential.Hot,
                                 hover_name="Combined_Key", hover_data=["City", "Province_State", "Confirmed",
                                                                        "Deaths", "Recovered"])
-        fig.update_layout(mapbox_style="dark", mapbox_accesstoken=token)
+        fig.update_traces(opacity=0.7)
+        fig.update_layout(mapbox_style="dark", height=1000, width=1000, mapbox_accesstoken=token)
         fig.update_layout(margin={"r": 0, "t": 0, "l": 0, "b": 0})
 
     return fig
@@ -285,13 +281,16 @@ def main():
             fig = plot_province(df, country)
             if fig is not None:
                 fig_drilled = None
-                if st.checkbox("Summary"):
+                flag = st.checkbox("Summary")
+                st.subheader("Hover Map")
+                st.plotly_chart(fig)
+                if flag:
                     if country == "US":
                         fig_drilled = plot_province_drilled(load_data(fetch_url(date, country="US")), country)
                     else:
                         fig_drilled = plot_province_drilled(df, country)
-                st.plotly_chart(fig)
                 if fig_drilled is not None:
+                    st.subheader("Summary")
                     st.plotly_chart(fig_drilled)
     else:
         # TODO(Sayar): Add values for deltas

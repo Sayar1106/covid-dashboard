@@ -1,5 +1,4 @@
 import streamlit as st
-import pandas as pd
 import src.pages.home
 import src.pages.data
 import src.pages.dashboard
@@ -19,9 +18,6 @@ def main():
     st.sidebar.title("Menu")
     choice = st.sidebar.radio("Navigate", list(PAGES.keys()))
     PAGES[choice].main()
-    st.sidebar.title("Contribute")
-    st.sidebar.info("Feel free to contribute to this open source project. The github link can be found "
-                     "[here](https://github.com/Sayar1106/covid-dashboard)")
     st.sidebar.title("About")
     st.sidebar.info(
         """
@@ -29,6 +25,9 @@ def main():
         [sayar1106.github.io](https://sayar1106.github.io).
         """
     )
+    st.sidebar.title("Contribute")
+    st.sidebar.info("Feel free to contribute to this open source project. The github link can be found "
+                    "[here](https://github.com/Sayar1106/covid-dashboard)")
 
 if __name__ == "__main__":
     main()

@@ -1,6 +1,5 @@
 import streamlit as st
 from datetime import datetime, timedelta
-import pandas as pd
 from src.pages.utils.load_data import load_data
 from src.pages.utils.fetch_url import fetch_url
 from PIL import Image
