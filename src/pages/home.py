@@ -2,7 +2,7 @@ import streamlit as st
 from PIL import Image
 
 def main():
-    image = Image.open("~/assets/monalisa-4893660_640.jpg")
+    image = Image.open("assets/monalisa-4893660_640.jpg")
     st.image(image)
     st.title("COVID-19 Dashboard")
     st.write("""
