@@ -11,14 +11,15 @@ def main():
     st.title("Data")
     date = datetime.today()
     DATA_URL = ""
-    try:
-        DATA_URL = fetch_url(date)
-        df = load_data(DATA_URL)
-    except:
-        date = date - timedelta(days=1)
-        DATA_URL = fetch_url(date)
+    df = None
     load_state = st.text('Loading data......')
-    df = load_data(DATA_URL)
+    while True:
+        try:
+            df = load_data(fetch_url(date))
+        except Exception as e:
+            date = date - timedelta(days=1)
+            continue
+        break
     load_state.text("Loading data......done!")
 
     if st.checkbox("Show raw data"):

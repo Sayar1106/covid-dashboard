@@ -151,6 +151,7 @@ def plot_province_drilled(df, country):
                             x=df["Confirmed"].nlargest(10),
                             orientation='h',
                             marker=dict(color=colors),
+                            hovertemplate='<br>Count: %{x:,.2f}',
                             ),
                      row=1, col=1)
 
@@ -158,6 +159,7 @@ def plot_province_drilled(df, country):
                             x=df["Deaths"].nlargest(10),
                             orientation='h',
                             marker=dict(color=colors),
+                            hovertemplate='<br>Count: %{x:,.2f}',
                             ),
                      row=2, col=1)
 
@@ -165,6 +167,7 @@ def plot_province_drilled(df, country):
                             x=df["Recovered"].nlargest(10),
                             orientation='h',
                             marker=dict(color=colors),
+                            hovertemplate='<br>Count: %{x:,.2f}',
                             ),
                      row=1, col=2)
 
@@ -172,11 +175,17 @@ def plot_province_drilled(df, country):
                             x=df["Active"].nlargest(10),
                             orientation='h',
                             marker=dict(color=colors),
+                            hovertemplate='<br>Count: %{x:,.2f}',
                             ),
                      row=2, col=2)
     fig.update_yaxes(ticks="inside", autorange="reversed")
     fig.update_xaxes(showgrid=False)
-    fig.update_layout(height=800, width=1200, showlegend=False)
+    fig.update_traces(opacity=0.7,
+                      marker_line_color='rgb(255, 255, 255)',
+                      marker_line_width=2.5
+                      )
+    fig.update_layout(height=800, width=1200,
+                      showlegend=False)
 
     return fig
 
@@ -253,13 +262,14 @@ def main():
     pio.templates.default = "plotly_dark"
     date = datetime.today()
     DATA_URL = ""
-    try:
-        DATA_URL = fetch_url(date)
-        df = load_data(DATA_URL)
-    except:
-        date = date - timedelta(days=1)
-        DATA_URL = fetch_url(date)
-    df = load_data(DATA_URL)
+    df = None
+    while True:
+        try:
+            df = load_data(fetch_url(date))
+        except:
+            date = date - timedelta(days=1)
+            continue
+        break
     time_series_dict = load_time_series()
     granularity = st.sidebar.selectbox("Granularity", ["Worldwide", "Country"])
     if granularity == "Country":
@@ -281,7 +291,7 @@ def main():
             fig = plot_province(df, country)
             if fig is not None:
                 fig_drilled = None
-                flag = st.checkbox("Summary")
+                flag = st.checkbox("Summary (click and scroll)")
                 st.subheader("Hover Map")
                 st.plotly_chart(fig)
                 if flag:
