@@ -9,14 +9,14 @@
 ![Issues](https://img.shields.io/github/issues/Sayar1106/covid-dashboard?style=for-the-badge)
 ![License](https://img.shields.io/github/license/Sayar1106/covid-dashboard?style=for-the-badge)
 
-A Coronavirus Dashboard that updates information realtime using ![Streamlit](https://www.streamlit.io/) as the primary UI engine.
+A Coronavirus Dashboard that updates information realtime using [Streamlit](https://www.streamlit.io/) as the primary UI engine.
 
 ![mona-lisa-mask](assets/monalisa-4893660_640.jpg)
 
 ## Data Source
 
-The ![data source](https://github.com/CSSEGISandData/COVID-19) is the repository maintained by the Center of Systems Science and Engineering at
-Johns Hopkins University. It is the same data source used to power the very famous ![COVID dashboard](https://www.arcgis.com/apps/opsdashboard/index.html#/bda7594740fd40299423467b48e9ecf6)
+The [data source](https://github.com/CSSEGISandData/COVID-19) is the repository maintained by the Center of Systems Science and Engineering at
+Johns Hopkins University. It is the same data source used to power the very famous [COVID dashboard](https://www.arcgis.com/apps/opsdashboard/index.html#/bda7594740fd40299423467b48e9ecf6)
 
 ## Overview
 
