@@ -261,12 +261,11 @@ def plot_province(df, country):
 def main():
     pio.templates.default = "plotly_dark"
     date = datetime.today()
-    DATA_URL = ""
     df = None
     while True:
         try:
             df = load_data(fetch_url(date))
-        except:
+        except Exception as e:
             date = date - timedelta(days=1)
             continue
         break

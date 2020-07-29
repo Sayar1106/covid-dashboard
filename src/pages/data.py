@@ -10,7 +10,6 @@ def main():
     st.image(img)
     st.title("Data")
     date = datetime.today()
-    DATA_URL = ""
     df = None
     load_state = st.text('Loading data......')
     while True:
