@@ -69,3 +69,14 @@ Run the app using streamlit
 ```shell script
 streamlit run app.py
 ```
+
+## Contribute
+Feel free to send pull requests and/or add issues.
+
+## About
+
+* ![Linkedin](https://www.linkedin.com/in/sayarbanerjee/)
+* ![Website](https://www.sayar1106.github.io)
+* ![Github](https://github.com/Sayar1106)
+* ![Medium](https://medium.com/@sayarbanerjee)
+* ![Kaggle](https://www.kaggle.com/sayar1106)
