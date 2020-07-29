@@ -1,9 +1,5 @@
 # covid-dashboard
 
-[![PyPI Version][pypi-v-image]][pypi-v-link]
-[![Build Status][travis-image]][travis-link]
-[![Windows Build Status][appveyor-image]][appveyor-link]
-[![Coverage Status][codecov-image]][codecov-link]
-[![Landscale Code Health][landscape-image]][landscape-link]
+[![Inline docs](https://inch-ci.org/github/Sayar1106/covid-dashboard.svg?branch=master)])(https://inch-ci.org/github/Sayar1106/covid-dashboard)
 
 A Coronavirus Dashboard that updates information realtime using Streamlit
