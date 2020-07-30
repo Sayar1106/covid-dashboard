@@ -14,6 +14,15 @@ from src.pages.utils.load_time_series import load_time_series
 
 @st.cache
 def plot_snapshot_numbers(df, colors, date, country=None):
+    """
+    Function plots snapshots for worldwide and countries.
+
+    :param df: DataFrame
+    :param colors: list
+    :param date: datetime object
+    :param country: str
+    :return: plotly.figure
+    """
     with st.spinner("Rendering chart..."):
         colors = px.colors.qualitative.D3
         if country:
@@ -46,6 +55,14 @@ def plot_snapshot_numbers(df, colors, date, country=None):
 
 @st.cache
 def plot_top_countries(df, colors, date):
+    """
+    Function plots top countries by confirmed, deaths, recovered, active cases.
+
+    :param df: DataFrame
+    :param colors: list
+    :param date: datetime object
+    :return: plotly.figure
+    """
     with st.spinner("Rendering chart..."):
         temp = df.groupby("Country_Region").agg({"Confirmed": "sum",
                                                  "Deaths": "sum",
@@ -101,6 +118,13 @@ def plot_top_countries(df, colors, date):
 
 @st.cache(allow_output_mutation=True)
 def plot_timeline(df, feature, country=None):
+    """
+    Function plots  time series charts for worldwide as well as countries
+    :param df: DataFrame
+    :param feature: str
+    :param country: str
+    :return: plotly.figure, DataFrame
+    """
     color = px.colors.qualitative.Prism
     if country:
         df = df[df["Country/Region"] == country]
@@ -137,6 +161,13 @@ def plot_timeline(df, feature, country=None):
 
 @st.cache
 def plot_province_drilled(df, country):
+    """
+    Function computes top provinces by confirmed, deaths, recovered and active cases.
+
+    :param df: DataFrame
+    :param country: str
+    :return: plotly.figure
+    """
     fig = make_subplots(2, 2, subplot_titles=["Top 10 States by cases",
                                               "Top 10 States by deaths",
                                               "Top 10 States by recoveries",
@@ -191,6 +222,15 @@ def plot_province_drilled(df, country):
 
 
 def load_day_change(time_series_dict, keys, granularity, country=None):
+    """
+    Function computes the delta change in confirmed, deaths, recovered and active cases over a single day
+
+    :param time_series_dict: dict
+    :param keys: list
+    :param granularity: str
+    :param country: str
+    :return: plotly.figure
+    """
     response_dict = {}
     PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../'))
     local_css(PATH + "/style.css")
@@ -228,6 +268,13 @@ def load_day_change(time_series_dict, keys, granularity, country=None):
 
 @st.cache(suppress_st_warning=True)
 def plot_province(df, country):
+    """
+    Function plots the map of a country with the state/county level information as a hover.
+
+    :param df: DataFrame
+    :param country: str
+    :return: plotly.figure
+    """
     fig = None
     df = df[df["Country_Region"] == country]
     if df["Province_State"].isnull().all():

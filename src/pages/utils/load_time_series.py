@@ -4,6 +4,11 @@ import streamlit as st
 
 @st.cache
 def load_time_series():
+    """
+    Function aggregates and returns a dictionary of time series data.
+
+    :return: dict
+    """
     confirmed_data = pd.read_csv(
         "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv")
     death_data = pd.read_csv(
