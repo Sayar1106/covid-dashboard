@@ -70,6 +70,19 @@ Run the app using streamlit
 streamlit run app.py
 ```
 
+## Rendering Mapbox graph
+
+In order to access the Province/State graph, you will have to create an account
+on [mapbox](https://www.mapbox.com/)
+
+Once you create an access token via mapbox do the following on your terminal:
+
+```
+mkdir src/pages/utils/tokens
+```
+
+This will create a directory called `tokens` under `utils`. Once this is done, create a file called `.mapbox_token` and paste your access token from mapbox over there.
+
 ## Contribute
 Feel free to send pull requests and/or add issues.
 
