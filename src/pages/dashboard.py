@@ -294,7 +294,7 @@ def plot_province(df, country):
             token = tfile.read()
         fig = px.scatter_mapbox(df, lat="lat", lon="lon", zoom=3, height=600, width=800,
                                 size="Scaled Confirmed",
-                                color="Incidence_Rate",
+                                color="Incident_Rate",
                                 color_continuous_scale=px.colors.sequential.Hot,
                                 hover_name="Combined_Key", hover_data=["City", "Province_State", "Confirmed",
                                                                        "Deaths", "Recovered"])
